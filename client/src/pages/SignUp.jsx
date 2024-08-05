@@ -1,11 +1,56 @@
-import { Button, Label, TextInput } from "flowbite-react";
+import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { HiOutlineArrowRight } from "react-icons/hi";
+import { Link, useNavigate } from "react-router-dom";
+import { HiOutlineArrowRight, HiInformationCircle } from "react-icons/hi";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const navigate = useNavigate();
+
+  // handle the changes :
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
+  };
+  console.log(formData);
+
+  // handle submit the form data:
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      setError(false);
+      // create a response:
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      // convert data to json:
+      const data = await res.json();
+      if (data.success === false) {
+        setError(data);
+        setLoading(false);
+        return;
+      }
+      // navigate to home page:
+      setError(false);
+      setLoading(false);
+      if (res.ok) {
+        navigate("/");
+      }
+    } catch (error) {
+      setError(error);
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen mt-20">
       <div className="max-w-3xl mx-auto p-3 flex flex-col md:flex-row md:items-center gap-5">
@@ -25,13 +70,14 @@ const SignUp = () => {
         </div>
         {/* right side */}
         <div className="flex-1">
-          <form className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <Label value="Username:" />
               <TextInput
                 type="text"
                 placeholder="Enter your name"
                 id="username"
+                onChange={handleChange}
               />
             </div>
             <div>
@@ -40,6 +86,7 @@ const SignUp = () => {
                 type="email"
                 placeholder="name@company.com"
                 id="email"
+                onChange={handleChange}
               />
             </div>
             <div className="relative">
@@ -48,6 +95,7 @@ const SignUp = () => {
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 id="password"
+                onChange={handleChange}
               />
               {showPassword ? (
                 <FaEyeSlash
@@ -61,8 +109,23 @@ const SignUp = () => {
                 />
               )}
             </div>
-            <Button type="submit" gradientDuoTone={"pinkToOrange"}>
-              Sign Up <HiOutlineArrowRight className="ms-2 mt-[2px] h-4 w-4" />
+            <Button
+              type="submit"
+              className="rounded-lg disabled:rounded-full disabled:opacity-95"
+              gradientDuoTone={"pinkToOrange"}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Spinner size={"md"} />
+                  <span className="pl-2 text-md">Loading...</span>
+                </>
+              ) : (
+                <>
+                  Sign Up{" "}
+                  <HiOutlineArrowRight className="ms-2 mt-[2px] h-4 w-4" />
+                </>
+              )}
             </Button>
           </form>
           <div className="flex gap-3 text-sm mt-5">
@@ -76,6 +139,15 @@ const SignUp = () => {
               </Link>
             </p>
           </div>
+          {error && (
+            <Alert
+              className="mt-5"
+              color={"failure"}
+              icon={HiInformationCircle}
+            >
+              <span className="font-semibold italic">{error.message}</span>
+            </Alert>
+          )}
         </div>
       </div>
     </div>
