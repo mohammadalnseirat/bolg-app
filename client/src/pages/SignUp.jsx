@@ -15,7 +15,7 @@ const SignUp = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
   };
-  console.log(formData);
+  // console.log(formData);
 
   // handle submit the form data:
   const handleSubmit = async (e) => {
